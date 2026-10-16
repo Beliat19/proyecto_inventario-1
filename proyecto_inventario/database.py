@@ -5,6 +5,7 @@ import asyncio
 
 ARCHIVO_BD = "inventario.json"
 db_lock = asyncio.Lock()
+tareas_alerta = set()
 
 async def leer_base_datos():
     try:
@@ -74,3 +75,34 @@ async def eliminar_producto(codigo):
 
         await guardar_base_datos(nuevos_datos)
         return True
+
+
+
+    
+
+async def alerta_stock_bajo(codigo, nombre, stock_actual):
+    await asyncio.sleep(2)
+    print(
+        f"\nALERTA CRiTICA: El producto {nombre} ({codigo}) "
+        f"ha bajado a {stock_actual} unidades. Solicitar restock inmediato."
+    )
+
+async def vender_producto(codigo, cantidad_vendida):
+    async with db_lock:
+        await asyncio.sleep(0.5)
+        datos = await leer_base_datos()
+        for dato in datos:
+            if dato["codigo"] == codigo:
+                if dato["stock"] < cantidad_vendida:
+                    raise ValueError(f"Stock insuficiente para el producto {codigo}.")
+                dato["stock"] -= cantidad_vendida
+                await guardar_base_datos(datos)
+                producto_actualizado = dato.copy()
+                if dato["stock"] < 3:
+                    tarea = asyncio.create_task(
+                        alerta_stock_bajo(codigo, dato["nombre"], dato["stock"])
+                    )
+                    tareas_alerta.add(tarea)
+                    tarea.add_done_callback(tareas_alerta.discard)
+                return producto_actualizado
+        raise KeyError("Producto no encontrado")
