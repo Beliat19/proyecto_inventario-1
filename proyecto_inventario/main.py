@@ -1,82 +1,75 @@
-import asyncio
-import uuid
+from fastapi import FastAPI, HTTPException #importo mi framework
+from database import leer_base_datos, obtener_producto
+import json
 
-from database import (crear_producto,eliminar_producto,tareas_alerta,vender_producto,)
+# Inicializar la aplicación
+app = FastAPI(
+    title="API inventarios SENA",
+    description="Mi primera API asíncrona",
+    version="1.0.0"
+)
 
+def cargar_inventario():
+    with open("inventario.json", "r", encoding="utf-8") as archivo:
+        return json.load(archivo)
 
-async def procesar_venta(codigo, cantidad_vendida):
+# Nuestro primer endpoint
+@app.get("/") # Decorador -> Función que recibe como parámetro otra función
+async def ruta_principal():
+    return {"mensaje": "¡Bienvenido a mi primera API Rest!"}
+
+@app.get("/estado")
+async def estado_servidor():
+    return {"status": "En línea", "servicios": "Operativos sin ningun invonveniente"}
+
+@app.get("/productos")
+async def listar_productos():
+    datos = await leer_base_datos()
+    return {"cantidad": len(datos), "productos": datos}
+
+@app.get("/productos/{codigo_producto}")
+async def buscar_un_producto(codigo_producto: str):
     try:
-        producto = await vender_producto(codigo, cantidad_vendida)
-        print(
-            f"Venta exitosa: {producto['nombre']}; "
-            f"stock restante: {producto['stock']}."
-        )
+        # Para llamar a la función de obtener producto
+        producto = await obtener_producto(codigo_producto)
         return producto
-    except ValueError as error:
-        print(f"Venta rechazada por stock insuficiente: {error}")
-        return None
-    except KeyError as error:
-        print(f"No se pudo completar la venta: {error}")
-        return None
+    except KeyError:
+        raise HTTPException(status_code=404, detail="El producto soliciato no existe en la BD.")
 
+    #--------------------------------------------------------------------------------------------------------------------------------------------
 
-async def prueba_de_ventas():
-    prefijo = uuid.uuid4().hex[:8]
-    productos = [
-        {
-            "codigo": f"SIM-{prefijo}-1",
-            "nombre": "Venta normal",
-            "stock": 10,
-            "cantidad": 3,
-        },
-        {
-            "codigo": f"SIM-{prefijo}-2",
-            "nombre": "Stock crítico",
-            "stock": 5,
-            "cantidad": 4,
-        },
-        {
-            "codigo": f"SIM-{prefijo}-3",
-            "nombre": "Venta sin existencias suficientes",
-            "stock": 3,
-            "cantidad": 4,
-        },
-        {
-            "codigo": f"SIM-{prefijo}-4",
-            "nombre": "Segunda venta normal",
-            "stock": 12,
-            "cantidad": 2,
-        },
-    ]
+@app.get("/categorias")
+def obtener_categorias():
+    inventario = cargar_inventario()
+    categorias = set()
+    for producto in inventario:
+        categorias.add(producto["categoria"])
+    return list(categorias)
 
-    await asyncio.gather(
-        *(
-            crear_producto(producto["codigo"], producto["nombre"], producto["stock"])
-            for producto in productos
-        )
-    )
+#------------------------------------------------------------------------------------------------------------------------------------------------
+@app.get("/alertas/stock")
 
-    try:
-        resultados = await asyncio.gather(
-            *(
-                procesar_venta(producto["codigo"], producto["cantidad"])
-                for producto in productos
-            )
-        )
-        print(
-            f"\nSimulación terminada: "
-            f"{sum(resultado is not None for resultado in resultados)} "
-            "ventas exitosas de 4 intentos."
-        )
-    finally:
-        try:
-            if tareas_alerta:
-                await asyncio.gather(*tuple(tareas_alerta))
-        finally:
-            await asyncio.gather(
-                *(eliminar_producto(producto["codigo"]) for producto in productos)
-            )
+def obtener_stock_critico():
+    inventario = cargar_inventario()
+    productos_criticos = []
 
+    for producto in inventario:
+        if producto["stock"] <= 3:
+            productos_criticos.append(producto)
 
-if __name__ == "__main__":
-    asyncio.run(prueba_de_ventas())
+            return productos_criticos
+#------------------------------------------------------------------------------------------------------------------------------------------------
+@app.get("/productos/buscar/{palabra_clave}")
+def buscar_productos(palabra_clave: str):
+    inventario = cargar_inventario ()
+    resultados = []
+
+    for producto in inventario:
+        nombre = producto["nombre"]
+
+        if palabra_clave.lower() in nombre.lower():
+            resultados.append(producto)
+
+            return resultados
+        
+
