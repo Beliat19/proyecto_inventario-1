@@ -2,6 +2,7 @@ corrutinas/
 time_outs_y_persistencia/
 13_10/
 venv/
+_pycache_/
 
 ejercicio2.py
 ex.py
