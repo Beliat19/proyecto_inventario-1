@@ -1,3 +1,4 @@
+
 # from fastapi import FastAPI, HTTPException, Request #importo mi framework
 # from database import leer_base_datos, obtener_producto, guardar_base_datos
 # from schemas import ProductoCreate
@@ -110,11 +111,11 @@
 
 
 # ----------------------------------------------------------------------------------------------------------
-
+# 
+#    
 from fastapi import FastAPI, HTTPException, status
 from database import leer_datos, guardar_datos
 from schemas import OrdenCreate, OrdenUpdate
-
 
 app = FastAPI()
 
@@ -177,3 +178,4 @@ async def actualizar_orden(placa: str, datos_act: OrdenUpdate):
     await guardar_datos(ordenes)
 
     return {"mensaje": "Orden actualizada exitosamente", "orden": orden_encontrada}
+

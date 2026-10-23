@@ -1,6 +1,6 @@
-import json
-import aiofiles
-import asyncio
+# import json
+# import aiofiles
+# import asyncio
 
 
 # module.exports
@@ -80,6 +80,9 @@ import asyncio
 # Cambio para la logica
 
 #--------------------------------------------------------------------------------------------------------
+
+import aiofiles
+import json
 
 ARCHIVO_DB = "taller.json"
 

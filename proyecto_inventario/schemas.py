@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+# from pydantic import BaseModel, Field
 # from typing import Optional # Para campos que pueden estar vacíos
 
 # class ProductoCreate(BaseModel):
@@ -12,6 +12,8 @@ from pydantic import BaseModel, Field
 
 
 #------------------------------------------------------------------------------------------------------------
+from pydantic import BaseModel, Field
+
 class OrdenCreate(BaseModel):
     placa: str = Field(..., max_length=6)
     modelo: str
