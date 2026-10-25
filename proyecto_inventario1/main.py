@@ -177,5 +177,5 @@ async def actualizar_orden(placa: str, datos_act: OrdenUpdate):
 
     await guardar_datos(ordenes)
 
-    return {"mensaje": "Orden actualizada exitosamente", "orden": orden_encontrada}
+    return {"mensaje": "Orden actualizada Correctamente", "orden": orden_encontrada}
 

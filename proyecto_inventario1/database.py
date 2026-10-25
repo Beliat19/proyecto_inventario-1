@@ -99,3 +99,4 @@ async def leer_datos():
 async def guardar_datos(datos):
     async with aiofiles.open(ARCHIVO_DB, "w", encoding="utf-8") as f:
         await f.write(json.dumps(datos, ensure_ascii=False, indent=4))
+        
